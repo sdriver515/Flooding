@@ -34,7 +34,7 @@ county_info_with_populations <- read_excel(here("Release23_June2021", "RuralAtla
 #NFIP_Reinsurance_Placement2020 <- read.csv(file = "./Documents/PUAD-688/NFIP_2021_Exposure_by_DTW(2021_NFIP_Reinsurance_Placement_Information).csv") 
 #Retain roll up by number of stories. We skip the first 7 lines because these contain description, not the dataset
 NFIP_Reinsurance_Placement2020 <- read_excel(here("NFIP", "NFIP_2021_Exposure_by_DTW.xlsx"), sheet= "NumStor_County_DTW", skip = 7)
-
+#some new changes
 
 #Looking at everything
 str(HUD_data) #a lot are chr and int 
