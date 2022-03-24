@@ -1,23 +1,40 @@
 ---
 title: "Flooding Project"
-author: "Ken"
+author: "Sarah Driver, Kenneth Lewis, Josh Rivera, Ryan Fisher, Emi Carbray"
 date: "3/21/2022"
 output: html_document
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+
+
 library(tidyverse) #load packages
 library(ggthemes)
 library(huxtable)
 library(readxl)
 library(stringr)
 library(readr)
+#install.packages("here")
+library(here)  #Keeps working directories consistent across OSes. Put the csv files in the directory where this project is installed.
+#install.packages('usmap')
+library(usmap)
+#HUD_data <- read.csv(file = "./Documents/PUAD-688/HUD_neighborhood_data.csv") 
+HUD_data <- read_excel(here("activeportfoliopropdata.xlsx"), sheet = "Step_01_Property_Level_data")
 
-HUD_data <- read.csv(file = "./Documents/PUAD-688/HUD_neighborhood_data.csv") 
-county_info_with_populations <- read.csv(file = "./Documents/PUAD-688/RuralAtlasData23People.csv") 
-county_info2 <- read.csv(file = "./Documents/PUAD-688/RuralAtlasData23.csv") 
-NFIP_Reinsurance_Placement2020 <- read.csv(file = "./Documents/PUAD-688/NFIP_2021_Exposure_by_DTW(2021_NFIP_Reinsurance_Placement_Information).csv") 
+
+#county_info_with_populations <- read.csv(file = "./Documents/PUAD-688/RuralAtlasData23People.csv") 
+
+#USDA county level data from: https://www.ers.usda.gov/data-products/atlas-of-rural-and-small-town-america/download-the-data/ 
+#Copy the folder "Release23_June2021" into the working directory of the flooding project
+#county_info2 <- read.csv(file = here("Release23_June2021", "RuralAtlasData23.csv")) #I only found this file as xlsx, not csv, so that's what I use below. The income data goes to county_info2 while the population data goes to county_info_with_population
+county_info2 <- read_excel(here("Release23_June2021", "RuralAtlasData23.xlsx"), sheet = "Income")
+county_info_with_populations <- read_excel(here("Release23_June2021", "RuralAtlasData23.xlsx"), sheet = "People")
+  
+#NFIP_Reinsurance_Placement2020 <- read.csv(file = "./Documents/PUAD-688/NFIP_2021_Exposure_by_DTW(2021_NFIP_Reinsurance_Placement_Information).csv") 
+#Retain roll up by number of stories. We skip the first 7 lines because these contain description, not the dataset
+NFIP_Reinsurance_Placement2020 <- read_excel(here("NFIP", "NFIP_2021_Exposure_by_DTW.xlsx"), sheet= "NumStor_County_DTW", skip = 7)
+
 
 #Looking at everything
 str(HUD_data) #a lot are chr and int 
@@ -26,56 +43,64 @@ glimpse(HUD_data)
 
 ## Data Cleaning
 
-```{r cars}
+```{r Cleaning}
 
 #New data
 HUD_narrowed <- HUD_data %>% select(property_id, address_line1_text, city_name_text, state_code, county_code, county_name_text)
+#generate a FIPS code from the state_code and count_code
+HUD_narrowed$FIPS <- (as.integer(fips(HUD_narrowed$state_code))*1000+as.integer(HUD_narrowed$county_code))
+#drop observations that are missing data
+HUD_narrowed <- HUD_narrowed %>% drop_na()
 
 #Checking all the occurences of county names: many of them, some with both upper and lower case writing 
-table(HUD_narrowed$county_name_text)
+#table(HUD_narrowed$county_name_text)
 
 #Making a list of HUD counties 
-HUD_counties <- HUD_data %>% select(county_code, county_name_text, state_code)
-HUD_county_names <- HUD_data %>% select(county_name_text, state_code)
+HUD_counties <- HUD_narrowed %>% select(FIPS, county_name_text)
+#HUD_county_names <- HUD_data %>% select(county_name_text, state_code)
 
 #Drop if missing
-HUD_county_names<- HUD_county_names %>% drop_na() #this doesn't seem to work 
-sum(is.na (HUD_county_names)) #It says 0...but clearly some aren't there
+#HUD_county_names<- HUD_county_names %>% drop_na() #this doesn't seem to work 
+#sum(is.na (HUD_county_names)) #It says 0...but clearly some aren't there
+
 #So now, adapt to this problem 
-HUD_county_names$county_name_text[HUD_county_names$county_name_text==""] <- 9999 #make NAs equal to 9999
-HUD_county_names <- HUD_county_names %>%
-  filter(county_name_text != 9999) #drop 9999s
+#HUD_county_names$county_name_text[HUD_county_names$county_name_text==""] <- 9999 #make NAs equal to 9999
+#HUD_county_names <- HUD_county_names %>%
+#  filter(county_name_text != 9999) #drop 9999s
 
 #Add a column to preserve punctuation 
-county_info2$Punctuated_county <- county_info2$County
+#county_info2$Punctuated_county <- county_info2$County
 
 #Change capitalization 
-HUD_county_names$county_name_text <- str_to_title(HUD_county_names$county_name_text) #removes all the weird punctuation and standardizes
-county_info2$County <- str_to_title(county_info2$County) #makes it match the above
+HUD_counties$county_name_text <- str_to_title(HUD_counties$county_name_text) #removes all the weird punctuation and standardizes
+#county_info2$County <- str_to_title(county_info2$County) #makes it match the above
 
 #Check for duplicates 
-length(unique(HUD_county_names$county_name_text)) == nrow(HUD_county_names) #FALSE = there are duplicates 
+#length(unique(HUD_county_names$county_name_text)) == nrow(HUD_county_names) #FALSE = there are duplicates
+length(unique(HUD_counties$FIPS))
+nrow(HUD_counties)#yes, there are many duplicates
+HUD_counties <- unique(HUD_counties) #drop all duplicates
 
 #How many duplicates?
-n_occur <- data.frame(table(HUD_county_names$county_name_text)) #so many duplicates...
+#n_occur <- data.frame(table(HUD_county_names$county_name_text)) #so many duplicates...
 
 #Remove duplicates
-HUD_county_names$County_and_State <- paste(HUD_county_names$county_name_text, HUD_county_names$state_code, sep="_") #combine columns into new one, County_and_State
-HUD_county_names <- HUD_county_names %>% distinct(County_and_State) 
+#HUD_county_names$County_and_State <- paste(HUD_county_names$county_name_text, HUD_county_names$state_code, sep="_") #combine columns into new one, County_and_State
+#HUD_county_names <- HUD_county_names %>% distinct(County_and_State) 
 
 #Separate column to fix 
-HUD_county_names <- HUD_county_names %>% separate(County_and_State, c('County', 'State'), "_", convert = TRUE) 
+#HUD_county_names <- HUD_county_names %>% separate(County_and_State, c('County', 'State'), "_", convert = TRUE) 
 #US Virgin Islands: [2418, 2419, 2420, 2422, 2423]
 
 #Check
-str(HUD_county_names)
-str(county_info2)
+str(HUD_counties)
+str(county_info2) #county info includes data aggregated at a higher level, e.g. FIPS code 01000 is all of Alabama
 
 #Make other column in other dataset into integer...probably don't need to do this 
-county_info2$PCTPOVALL <- as.integer(county_info2$PCTPOVALL)
+#county_info2$PCTPOVALL <- as.integer(county_info2$PCTPOVALL)
 
 #Remove white space trailing words
-HUD_county_names$County <- trimws(HUD_county_names$County)
+HUD_counties$county_name_text <- trimws(HUD_counties$county_name_text)
 county_info2$County <- trimws(county_info2$County)
 
 #OR delete all white space, but this is messy 
@@ -83,12 +108,12 @@ county_info2$County <- trimws(county_info2$County)
 #county_info2$County <- str_replace_all(county_info2$County," ","") 
 
 #Create column with combined names actually...I need this I think
-HUD_county_names$County_and_State <- paste(HUD_county_names$County, HUD_county_names$State, sep="_") #squish back together 
-county_info2$County_and_State <- paste(county_info2$County, county_info2$State, sep="_") #squish back together 
+#HUD_county_names$County_and_State <- paste(HUD_county_names$County, HUD_county_names$State, sep="_") #squish back together 
+#county_info2$County_and_State <- paste(county_info2$County, county_info2$State, sep="_") #squish back together 
 
 #Joining 
 #joined_county_data <- left_join(HUD_county_names, county_info2, by='County_and_State') #one way to join, but less neat
-joined_county_data <- left_join(HUD_county_names, county_info2, by=c('County' = 'County', 'State' = 'State')) #results in 2773 observations
+#joined_county_data <- left_join(HUD_county_names, county_info2, by=c('County' = 'County', 'State' = 'State')) #results in 2773 observations
 
 #USEFUL: PCTPOVALL = Total poverty in 2019
 
@@ -104,39 +129,43 @@ NFIP_data$RiskCount <- as.integer((gsub(",", "", NFIP_data$RiskCount)))
 
 #Making the name not be capitalized 
 NFIP_data$County <- str_to_title(NFIP_data$County)
-
+county_info2$County <- str_to_title(county_info2$County)
 #Remove white space 
 NFIP_data$County <- trimws(NFIP_data$County)
 NFIP_data$State <- trimws(NFIP_data$State)
 
 #Remove duplicates
-NFIP_data$County_and_State <- paste(NFIP_data$County, NFIP_data$State, sep="_") #combine columns into new one, County_and_State
+#NFIP_data$County_and_State <- paste(NFIP_data$County, NFIP_data$State, sep="_") #combine columns into new one, County_and_State
 
 #Create column of added up counts within counties to divide by risk numbers
 NFIP_data <- NFIP_data%>%
-  add_count(County_and_State) #n is the count
+  add_count(FIPS) #n is the count
 
 #Create column of added up risk counts 
 NFIP_data <- NFIP_data%>%
-  group_by(County_and_State) %>% 
+  group_by(FIPS) %>% 
   mutate(Summed_Risk = sum(RiskCount))
 
 #Get rid of FIPS
-NFIP_data <- NFIP_data %>% select(-FIPS)
+#NFIP_data <- NFIP_data %>% select(-FIPS)
 
 #Since we don't need everything lets remove duplicates 
-NFIP_data$County_and_State <- paste(NFIP_data$County, NFIP_data$State, sep="_")
+#NFIP_data$County_and_State <- paste(NFIP_data$County, NFIP_data$State, sep="_")
 
 #Fix names real quick in the joined data set to set up merging 
-joined_county_data <- joined_county_data %>% mutate(County_and_State = County_and_State.y)
-joined_county_data <- joined_county_data %>% select(-County_and_State.x, -County_and_State.y)
+#joined_county_data <- joined_county_data %>% mutate(County_and_State = County_and_State.y)
+#joined_county_data <- joined_county_data %>% select(-County_and_State.x, -County_and_State.y)
 
 #Get rid of data I don't want right now in NFIP stuff 
-NFIP_data <- NFIP_data %>% select(-DTW_band, -RiskCount, -TIV, -Limit, -RollUp_Level, -County, -State)
-NFIP_data <- NFIP_data %>%distinct()
+#NFIP_data <- NFIP_data %>% select(-DTW_band, -RiskCount, -TIV, -Limit, -RollUp_Level, -County, -State)
+#NFIP_data <- NFIP_data %>%distinct()
 
 #Join NFIP flood reinsurance info to joined dataset
-joined_county_data <- left_join(joined_county_data , NFIP_data, by= c('County_and_State' = 'County_and_State'))
+#joined_county_data <- left_join(joined_county_data , NFIP_data, by= c('County_and_State' = 'County_and_State'))
+county_info2$FIPS <- as.integer(county_info2$FIPS) #convert county_info2$FIPS to integer
+joined_county_data <- left_join(county_info2, NFIP_data, by= "FIPS")
+#checking if counties are named differently in the merged datasets
+joined_county_data$badstatecounty <- joined_county_data$County.x != joined_county_data$County.y
 
 #The risk categories are for flood reinsurance 
 
@@ -150,10 +179,10 @@ poor_counties <- joined_county_data %>%
 ```
 
 ## Write to File and Clean up
-```{r Cleanup, echo=TRUE}
+```{r WriteFile, echo=TRUE}
 #Save data frames as .csv
-write_csv(poor_counties, "./Documents/PUAD-688/Poor_Counties.csv")
-write_csv(joined_county_data, "./Documents/PUAD-688/Some_Joined_Data.csv")
+#write_csv(poor_counties, "./Documents/PUAD-688/Poor_Counties.csv")
+#write_csv(joined_county_data, "./Documents/PUAD-688/Some_Joined_Data.csv")
 
 ```
 
