@@ -22,6 +22,7 @@ library(usmap)
 #HUD_data <- read.csv(file = "./Documents/PUAD-688/HUD_neighborhood_data.csv") 
 HUD_data <- read_excel(here("activeportfoliopropdata.xlsx"), sheet = "Step_01_Property_Level_data")
 
+typical_home_value_from_Zillow <- read.csv(here("County_zhvi_uc_sfrcondo_tier_0.33_0.67_sm_sa_month.csv"))
 
 #county_info_with_populations <- read.csv(file = "./Documents/PUAD-688/RuralAtlasData23People.csv") 
 
