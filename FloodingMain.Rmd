@@ -157,6 +157,9 @@ joined_county_data <- left_join(joined_county_data, NFIP_financial_losses_for_20
 joined_county_data <- joined_county_data %>% 
   mutate(Risk_by_Instances_in_County = Summed_Risk/n)
 
+#Drop weird rows that have "US" as the state 
+joined_county_data <- subset(joined_county_data, State.x != "US")
+
 #Look at very poor counties 
 poor_counties <- joined_county_data %>%
   filter(PCTPOVALL >= 20) 
