@@ -53,33 +53,27 @@ HUD_narrowed$FIPS <- (as.integer(fips(HUD_narrowed$state_code))*1000+as.integer(
 #drop observations that are missing data
 HUD_narrowed <- HUD_narrowed %>% drop_na()
 
-#Checking all the occurences of county names: many of them, some with both upper and lower case writing 
-#table(HUD_narrowed$county_name_text)
-
 #Making a list of HUD counties 
 HUD_counties <- HUD_narrowed %>% select(FIPS, county_name_text)
 #HUD_county_names <- HUD_data %>% select(county_name_text, state_code)
 
-#Drop if missing
-#HUD_county_names<- HUD_county_names %>% drop_na() #this doesn't seem to work 
-#sum(is.na (HUD_county_names)) #It says 0...but clearly some aren't there
 
 #So now, adapt to this problem 
 #HUD_county_names$county_name_text[HUD_county_names$county_name_text==""] <- 9999 #make NAs equal to 9999
 #HUD_county_names <- HUD_county_names %>%
-#  filter(county_name_text != 9999) #drop 9999s
+  #filter(county_name_text != 9999) #drop 9999s
 
 #Add a column to preserve punctuation 
 #county_info2$Punctuated_county <- county_info2$County
 
 #Change capitalization 
-HUD_counties$county_name_text <- str_to_title(HUD_counties$county_name_text) #removes all the weird punctuation and standardizes
+#HUD_counties$county_name_text <- str_to_title(HUD_counties$county_name_text) #removes all the weird punctuation and standardizes
 #county_info2$County <- str_to_title(county_info2$County) #makes it match the above
 
 #Check for duplicates 
 #length(unique(HUD_county_names$county_name_text)) == nrow(HUD_county_names) #FALSE = there are duplicates
 length(unique(HUD_counties$FIPS))
-nrow(HUD_counties)#yes, there are many duplicates
+#nrow(HUD_counties)#yes, there are many duplicates
 HUD_counties <- unique(HUD_counties) #drop all duplicates
 
 #How many duplicates?
@@ -101,8 +95,8 @@ str(county_info2) #county info includes data aggregated at a higher level, e.g. 
 #county_info2$PCTPOVALL <- as.integer(county_info2$PCTPOVALL)
 
 #Remove white space trailing words
-HUD_counties$county_name_text <- trimws(HUD_counties$county_name_text)
-county_info2$County <- trimws(county_info2$County)
+#HUD_counties$county_name_text <- trimws(HUD_counties$county_name_text)
+#county_info2$County <- trimws(county_info2$County)
 
 #OR delete all white space, but this is messy 
 #HUD_county_names$County <- str_replace_all(HUD_county_names$County," ","")
@@ -115,6 +109,11 @@ county_info2$County <- trimws(county_info2$County)
 #Joining 
 #joined_county_data <- left_join(HUD_county_names, county_info2, by='County_and_State') #one way to join, but less neat
 #joined_county_data <- left_join(HUD_county_names, county_info2, by=c('County' = 'County', 'State' = 'State')) #results in 2773 observations
+
+#Not deleting this just yet because I might need it still - I stopped doing this becuase the fips() kept not recongiing my counties 
+
+#Creating fips codes for Zillow data
+typical_home_value_from_Zillow$FIPS <- (as.integer(fips(typical_home_value_from_Zillow$StateName))*1000+as.integer(typical_home_value_from_Zillow$MunicipalCodeFIPS))
 
 #USEFUL: PCTPOVALL = Total poverty in 2019
 
@@ -167,6 +166,10 @@ county_info2$FIPS <- as.integer(county_info2$FIPS) #convert county_info2$FIPS to
 joined_county_data <- left_join(county_info2, NFIP_data, by= "FIPS")
 #checking if counties are named differently in the merged datasets
 joined_county_data$badstatecounty <- joined_county_data$County.x != joined_county_data$County.y
+
+#Join Zillow data to joined dataset
+typical_home_value_from_Zillow$FIPS <- as.integer(typical_home_value_from_Zillow$FIPS) #convert county_info2$FIPS to integer
+joined_county_data <- left_join(joined_county_data, typical_home_value_from_Zillow, by= "FIPS")
 
 #The risk categories are for flood reinsurance 
 
