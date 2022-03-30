@@ -22,7 +22,7 @@ library(usmap)
 #HUD_data <- read.csv(file = "./Documents/PUAD-688/HUD_neighborhood_data.csv") 
 HUD_data <- read_excel(here("activeportfoliopropdata.xlsx"), sheet = "Step_01_Property_Level_data")
 
-typical_home_value_from_Zillow <- read.csv(here("County_zhvi_uc_sfrcondo_tier_0.33_0.67_sm_sa_month.csv"))
+typical_home_value_from_Zillow <- read.csv(here("County_zhvi_uc_sfrcondo_tier_0.33_0.67_sm_sa_month.csv")) #This is a time series of TYPICAL home values, smoothed, seasonally adjusted, for 35th to 65th percentile homes, and located at: https://www.zillow.com/research/data/. Data name in the selection part is "ZHVI All Homes (SFR, Condo/Co-op) Time-series, Smoothed, Seasonally Adjusted $."
 
 #county_info_with_populations <- read.csv(file = "./Documents/PUAD-688/RuralAtlasData23People.csv") 
 
@@ -63,7 +63,7 @@ length(unique(HUD_counties$FIPS))
 #nrow(HUD_counties)#yes, there are many duplicates
 HUD_counties <- unique(HUD_counties) #drop all duplicates
 
-#Note: US Virgin Islands are [2418, 2419, 2420, 2422, 2423]
+#Note: US Virgin Islands are in here, might want to double check them
 
 #Check
 str(HUD_counties)
@@ -75,6 +75,9 @@ county_info2$County <- trimws(county_info2$County)
 
 #Creating fips codes for Zillow data
 typical_home_value_from_Zillow$FIPS <- (as.integer(fips(typical_home_value_from_Zillow$StateName))*1000+as.integer(typical_home_value_from_Zillow$MunicipalCodeFIPS))
+
+#Changing Zillow data's column names to be nicer
+typical_home_value_from_Zillow <- typical_home_value_from_Zillow %>% rename_with(~paste0(., "_Zillow_date"), X1.31.00:X2.28.22)
 
 #USEFUL: PCTPOVALL = Total poverty in 2019
 
