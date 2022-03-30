@@ -32,9 +32,12 @@ typical_home_value_from_Zillow <- read.csv(here("County_zhvi_uc_sfrcondo_tier_0.
 county_info2 <- read_excel(here("Release23_June2021", "RuralAtlasData23.xlsx"), sheet = "Income")
 county_info_with_populations <- read_excel(here("Release23_June2021", "RuralAtlasData23.xlsx"), sheet = "People")
   
-#Now adding info about NFIP claims
+#Now adding info about NFIP claims for Fiscal Year 2022
 NFIP_financial_losses_for_2022 <- read.csv(here("nfip_financial-losses-by-state_20220228.csv"))
 #took this from https://nfipservices.floodsmart.gov/reports-flood-insurance-data 
+
+#Average NFIP Claims Data by State and Territory 1996-2019 (taken from their website https://www.fema.gov/data-visualization/historical-flood-risk-and-costs on March 30, 2022)
+Average_NFIP_claims_1996_to_2019 <- read_excel(here("Average NFIP Claims Data by State and Territory 1996-2019.xlsx"))
 
 #NFIP_Reinsurance_Placement2020 <- read.csv(file = "./Documents/PUAD-688/NFIP_2021_Exposure_by_DTW(2021_NFIP_Reinsurance_Placement_Information).csv") 
 #Retain roll up by number of stories. We skip the first 7 lines because these contain description, not the dataset
@@ -68,6 +71,7 @@ length(unique(HUD_counties$FIPS))
 HUD_counties <- unique(HUD_counties) #drop all duplicates
 
 #Note: US Virgin Islands are in here, might want to double check them
+#TIV means total insurable value 
 
 #Check
 str(HUD_counties)
