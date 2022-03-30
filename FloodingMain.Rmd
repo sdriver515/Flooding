@@ -32,6 +32,10 @@ typical_home_value_from_Zillow <- read.csv(here("County_zhvi_uc_sfrcondo_tier_0.
 county_info2 <- read_excel(here("Release23_June2021", "RuralAtlasData23.xlsx"), sheet = "Income")
 county_info_with_populations <- read_excel(here("Release23_June2021", "RuralAtlasData23.xlsx"), sheet = "People")
   
+#Now adding info about NFIP claims
+NFIP_financial_losses_for_2022 <- read.csv(here("nfip_financial-losses-by-state_20220228.csv"))
+#took this from https://nfipservices.floodsmart.gov/reports-flood-insurance-data 
+
 #NFIP_Reinsurance_Placement2020 <- read.csv(file = "./Documents/PUAD-688/NFIP_2021_Exposure_by_DTW(2021_NFIP_Reinsurance_Placement_Information).csv") 
 #Retain roll up by number of stories. We skip the first 7 lines because these contain description, not the dataset
 NFIP_Reinsurance_Placement2020 <- read_excel(here("NFIP", "NFIP_2021_Exposure_by_DTW.xlsx"), sheet= "NumStor_County_DTW", skip = 7)
