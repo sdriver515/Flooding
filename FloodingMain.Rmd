@@ -15,6 +15,8 @@ library(huxtable)
 library(readxl)
 library(stringr)
 library(readr)
+#install.packages("usdata")
+library(usdata)
 #install.packages("here")
 library(here)  #Keeps working directories consistent across OSes. Put the csv files in the directory where this project is installed.
 #install.packages('usmap')
@@ -54,7 +56,7 @@ glimpse(HUD_data)
 ```{r Cleaning}
 
 #New data
-HUD_narrowed <- HUD_data %>% select(property_id, address_line1_text, city_name_text, state_code, county_code, county_name_text)
+HUD_narrowed <- HUD_data %>% select(property_id, address_line1_text, city_name_text, state_code, state_name_text, county_code, county_name_text)
 #generate a FIPS code from the state_code and count_code
 HUD_narrowed$FIPS <- (as.integer(fips(HUD_narrowed$state_code))*1000+as.integer(HUD_narrowed$county_code))
 #drop observations that are missing data
@@ -92,6 +94,9 @@ typical_home_value_from_Zillow <- typical_home_value_from_Zillow %>% rename_with
 #Now fixing up NFIP data for combination by removing one word from phrases
 NFIP_data <- NFIP_Reinsurance_Placement2020 %>%
   mutate(County = str_remove_all(County, "COUNTY")) #removing all of COUNTY from county names 
+
+#Making NFIP_financial_losses_for_2022 have clearer column titles
+NFIP_financial_losses_for_2022 <- NFIP_financial_losses_for_2022 %>% rename_with(~paste0(., "_Fiscal_Year_2022"), Number.of.Records:Total.Payments)
 
 #check out data 
 str(NFIP_data)
@@ -131,6 +136,20 @@ joined_county_data$badstatecounty <- joined_county_data$County.x != joined_count
 #Join Zillow data to joined dataset
 typical_home_value_from_Zillow$FIPS <- as.integer(typical_home_value_from_Zillow$FIPS) #convert typical_home_value_from_Zillow$FIPS to integer
 joined_county_data <- left_join(joined_county_data, typical_home_value_from_Zillow, by= "FIPS")
+
+#Neaten joined_county_data by removing duplicate columns and fixing column names
+joined_county_data <- joined_county_data %>% select(-State.y, -County.y)
+
+#Standardize capitalization of state names in NFIP_financial_losses_for_2022 dataset
+NFIP_financial_losses_for_2022$State <- str_to_title(NFIP_financial_losses_for_2022$State)
+
+#Make claims datasets have abbreviations 
+Average_NFIP_claims_1996_to_2019$State <- state2abbr(Average_NFIP_claims_1996_to_2019$State)
+NFIP_financial_losses_for_2022$State <- state2abbr(NFIP_financial_losses_for_2022$State)
+
+#Join claims data to joined_county_data 
+joined_county_data <- left_join(joined_county_data, Average_NFIP_claims_1996_to_2019, by= "State")
+joined_county_data <- left_join(joined_county_data, NFIP_financial_losses_for_2022, by= c("StateName"= "State"))
 
 #The risk categories are for flood reinsurance 
 
