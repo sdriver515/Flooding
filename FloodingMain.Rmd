@@ -118,7 +118,7 @@ joined_county_data <- left_join(county_info2, NFIP_data, by= "FIPS")
 joined_county_data$badstatecounty <- joined_county_data$County.x != joined_county_data$County.y
 
 #Join Zillow data to joined dataset
-typical_home_value_from_Zillow$FIPS <- as.integer(typical_home_value_from_Zillow$FIPS) #convert county_info2$FIPS to integer
+typical_home_value_from_Zillow$FIPS <- as.integer(typical_home_value_from_Zillow$FIPS) #convert typical_home_value_from_Zillow$FIPS to integer
 joined_county_data <- left_join(joined_county_data, typical_home_value_from_Zillow, by= "FIPS")
 
 #The risk categories are for flood reinsurance 
