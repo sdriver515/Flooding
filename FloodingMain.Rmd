@@ -98,6 +98,23 @@ typical_home_value_from_Zillow <- typical_home_value_from_Zillow %>% rename_with
 
 #USEFUL: PCTPOVALL = Total poverty in 2019
 
+#Change up the #literacy and numeracy data to make clearer 
+abilities_by_county <- abilities_by_county %>% 
+  mutate(Literacy_proportion_at_or_below_Level_1_indirect_estimates = Lit_P1 ) %>%
+  select(-Lit_P1)
+
+abilities_by_county <- abilities_by_county %>% 
+  mutate(Literacy_average_score = Lit_A) %>%
+  select(-Lit_A)
+
+abilities_by_county <- abilities_by_county %>% 
+  mutate(Numeracy_proportion_at_or_below_Level_1_indirect_estimates= Num_P1) %>%
+  select(-Num_P1)
+
+abilities_by_county <- abilities_by_county %>% 
+  mutate(Numeracy_average_score = Num_A) %>%
+  select(-Num_A)
+
 #Now fixing up NFIP data for combination by removing one word from phrases
 NFIP_data <- NFIP_Reinsurance_Placement2020 %>%
   mutate(County = str_remove_all(County, "COUNTY")) #removing all of COUNTY from county names 
