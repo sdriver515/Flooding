@@ -115,6 +115,8 @@ abilities_by_county <- abilities_by_county %>%
   mutate(Numeracy_average_score = Num_A) %>%
   select(-Num_A)
 
+abilities_by_county <- abilities_by_county %>% select(FIPS_code, White, Black, Hispanic, Asian, Literacy_proportion_at_or_below_Level_1_indirect_estimates, Literacy_average_score, Numeracy_proportion_at_or_below_Level_1_indirect_estimates, Numeracy_average_score)
+
 #Now fixing up NFIP data for combination by removing one word from phrases
 NFIP_data <- NFIP_Reinsurance_Placement2020 %>%
   mutate(County = str_remove_all(County, "COUNTY")) #removing all of COUNTY from county names 
@@ -159,7 +161,10 @@ joined_county_data$badstatecounty <- joined_county_data$County.x != joined_count
 
 #Join Zillow data to joined dataset
 typical_home_value_from_Zillow$FIPS <- as.integer(typical_home_value_from_Zillow$FIPS) #convert typical_home_value_from_Zillow$FIPS to integer
-joined_county_data <- left_join(joined_county_data, typical_home_value_from_Zillow, by= "FIPS")
+joined_county_data <- left_join(joined_county_data, typical_home_value_from_Zillow, by= c( "FIPS"))
+
+#Join abilities data to everything 
+joined_county_data <- left_join(joined_county_data, abilities_by_county, by=c("FIPS" = "FIPS_code"))
 
 #Neaten joined_county_data by removing duplicate columns and fixing column names
 joined_county_data <- joined_county_data %>% select(-State.y, -County.y)
