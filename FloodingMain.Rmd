@@ -130,6 +130,7 @@ Coastline_counties <- Coastline_counties %>% select(FIPS, Coastline_county)
 
 #Make sure is not a character
 Coastline_counties$FIPS <- as.integer(Coastline_counties$FIPS)
+Coastline_counties$Coastline_county <- as.integer(Coastline_counties$Coastline_county)
 
 #Now fixing up NFIP data for combination by removing one word from phrases
 NFIP_data <- NFIP_Reinsurance_Placement2020 %>%
@@ -199,6 +200,8 @@ joined_county_data <- left_join(joined_county_data, NFIP_financial_losses_for_20
 #Join coastline data to joined_county_data
 joined_county_data <- left_join(joined_county_data, Coastline_counties, by= "FIPS")
 
+joined_county_data$Coastline_county <- as.integer(joined_county_data$Coastline_county)
+ 
 #Get rid of repeated FIPS
 joined_county_data <- joined_county_data %>% select(-n)
 
@@ -217,7 +220,7 @@ poor_counties <- joined_county_data %>%
   filter(PCTPOVALL >= 20) 
 ```
 
-##Look at data
+##Look at data and analyze a bit 
 ```{r Data Visualization}
 #Make sure this is a dataframe 
 joined_county_data <- as.data.frame(joined_county_data)
@@ -259,6 +262,12 @@ ggplot(data = joined_county_data,
        mapping = aes(x = White,
                      y = Risk_by_Instances_in_County)) +
   geom_point()
+
+#Linear model
+joined_county_data_linear_model <- lm(formula = Average_NFIP_Claims_1996_to_2019 ~ Black + Numeracy_average_score + Literacy_average_score + Coastline_county, 
+              data = joined_county_data) 
+
+summary(joined_county_data_linear_model)
 ```
 
 ## Write to File and Clean up
