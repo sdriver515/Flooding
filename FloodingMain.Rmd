@@ -41,6 +41,9 @@ NFIP_financial_losses_for_2022 <- read.csv(here("nfip_financial-losses-by-state_
 #Average NFIP Claims Data by State and Territory 1996-2019 (taken from their website https://www.fema.gov/data-visualization/historical-flood-risk-and-costs on March 30, 2022)
 Average_NFIP_claims_1996_to_2019 <- read_excel(here("Average NFIP Claims Data by State and Territory 1996-2019.xlsx"))
 
+Coastline_counties <- read_excel(here("coastline-counties-list-2016.xlsx")) 
+#From https://www2.census.gov/library/stories/2018/08/coastline-counties-list.xlsx
+
 #Numeracy and literacy by county from https://nces.ed.gov/surveys/piaac/skillsmap/ 
 abilities_by_county <- read.csv(here("SAE_website_dataset.b29ed56c.csv"))
 #Lit_P1 = Literacy proportion at or below Level 1 indirect estimates
@@ -84,6 +87,7 @@ HUD_counties <- unique(HUD_counties) #drop all duplicates
 
 #Check
 str(HUD_counties)
+str(Coastline_counties)
 str(county_info2) #county info includes data aggregated at a higher level, e.g. FIPS code 01000 is all of Alabama
 
 #Remove white space trailing words
@@ -118,6 +122,14 @@ abilities_by_county <- abilities_by_county %>%
   mutate(Numeracy_over_average = Numeracy_average_score)
 
 abilities_by_county$Numeracy_over_average <- ifelse(abilities_by_county$Numeracy_over_average > 257, "1", "0") #average numeracy score is 257
+
+#Fix up Coastline_counties data for merging 
+Coastline_counties$Coastline_county <- 1 #will be tagged as 1 if coastline county
+
+Coastline_counties <- Coastline_counties %>% select(FIPS, Coastline_county)
+
+#Make sure is not a character
+Coastline_counties$FIPS <- as.integer(Coastline_counties$FIPS)
 
 #Now fixing up NFIP data for combination by removing one word from phrases
 NFIP_data <- NFIP_Reinsurance_Placement2020 %>%
@@ -183,6 +195,9 @@ joined_county_data <- joined_county_data %>% rename_with(~paste0(., "_Zillow_dat
 #Join claims data to joined_county_data 
 joined_county_data <- left_join(joined_county_data, Average_NFIP_claims_1996_to_2019, by= "State")
 joined_county_data <- left_join(joined_county_data, NFIP_financial_losses_for_2022, by= c("StateName"= "State"))
+
+#Join coastline data to joined_county_data
+joined_county_data <- left_join(joined_county_data, Coastline_counties, by= "FIPS")
 
 #Get rid of repeated FIPS
 joined_county_data <- joined_county_data %>% select(-n)
