@@ -93,9 +93,6 @@ county_info2$County <- trimws(county_info2$County)
 #Creating fips codes for Zillow data
 typical_home_value_from_Zillow$FIPS <- (as.integer(fips(typical_home_value_from_Zillow$StateName))*1000+as.integer(typical_home_value_from_Zillow$MunicipalCodeFIPS))
 
-#Changing Zillow data's column names to be nicer
-typical_home_value_from_Zillow <- typical_home_value_from_Zillow %>% rename_with(~paste0(., "_Zillow_date"), X1.31.00:X2.28.22)
-
 #USEFUL: PCTPOVALL = Total poverty in 2019
 
 #Change up the #literacy and numeracy data to make clearer 
@@ -116,6 +113,11 @@ abilities_by_county <- abilities_by_county %>%
   select(-Num_A)
 
 abilities_by_county <- abilities_by_county %>% select(FIPS_code, White, Black, Hispanic, Asian, Literacy_proportion_at_or_below_Level_1_indirect_estimates, Literacy_average_score, Numeracy_proportion_at_or_below_Level_1_indirect_estimates, Numeracy_average_score)
+
+abilities_by_county <- abilities_by_county %>% 
+  mutate(Numeracy_over_average = Numeracy_average_score)
+
+abilities_by_county$Numeracy_over_average <- ifelse(abilities_by_county$Numeracy_over_average > 257, "1", "0") #average numeracy score is 257
 
 #Now fixing up NFIP data for combination by removing one word from phrases
 NFIP_data <- NFIP_Reinsurance_Placement2020 %>%
@@ -146,28 +148,17 @@ NFIP_data <- NFIP_data%>%
   group_by(FIPS) %>% 
   mutate(Summed_Risk = sum(RiskCount))
 
-#Get rid of FIPS
-#NFIP_data <- NFIP_data %>% select(-FIPS)
-
-#Get rid of data I don't want right now in NFIP stuff 
-#NFIP_data <- NFIP_data %>% select(-DTW_band, -RiskCount, -TIV, -Limit, -RollUp_Level, -County, -State)
-#NFIP_data <- NFIP_data %>%distinct()
-
 #Join NFIP flood reinsurance info to joined dataset
 county_info2$FIPS <- as.integer(county_info2$FIPS) #convert county_info2$FIPS to integer
 joined_county_data <- left_join(county_info2, NFIP_data, by= "FIPS")
-#checking if counties are named differently in the merged datasets
-joined_county_data$badstatecounty <- joined_county_data$County.x != joined_county_data$County.y
 
 #Join Zillow data to joined dataset
 typical_home_value_from_Zillow$FIPS <- as.integer(typical_home_value_from_Zillow$FIPS) #convert typical_home_value_from_Zillow$FIPS to integer
 joined_county_data <- left_join(joined_county_data, typical_home_value_from_Zillow, by= c( "FIPS"))
 
 #Join abilities data to everything 
+abilities_by_county <- as.data.frame(abilities_by_county) #make sure it is a dataframe for joining 
 joined_county_data <- left_join(joined_county_data, abilities_by_county, by=c("FIPS" = "FIPS_code"))
-
-#Neaten joined_county_data by removing duplicate columns and fixing column names
-joined_county_data <- joined_county_data %>% select(-State.y, -County.y)
 
 #Standardize capitalization of state names in NFIP_financial_losses_for_2022 dataset
 NFIP_financial_losses_for_2022$State <- str_to_title(NFIP_financial_losses_for_2022$State)
@@ -176,22 +167,46 @@ NFIP_financial_losses_for_2022$State <- str_to_title(NFIP_financial_losses_for_2
 Average_NFIP_claims_1996_to_2019$State <- state2abbr(Average_NFIP_claims_1996_to_2019$State)
 NFIP_financial_losses_for_2022$State <- state2abbr(NFIP_financial_losses_for_2022$State)
 
-#Join claims data to joined_county_data 
-joined_county_data <- left_join(joined_county_data, Average_NFIP_claims_1996_to_2019, by= "State")
-joined_county_data <- left_join(joined_county_data, NFIP_financial_losses_for_2022, by= c("StateName"= "State"))
-
 #The risk categories are for flood reinsurance 
-
 #New column for risk
 joined_county_data <- joined_county_data %>% 
   mutate(Risk_by_Instances_in_County = Summed_Risk/n)
 
+#Changing Zillow-related date column names to be nicer
+joined_county_data <- joined_county_data %>% rename_with(~paste0(., "_Zillow_date"), X1.31.00:X2.28.22)
+
+#Join claims data to joined_county_data 
+joined_county_data <- left_join(joined_county_data, Average_NFIP_claims_1996_to_2019, by= "State")
+joined_county_data <- left_join(joined_county_data, NFIP_financial_losses_for_2022, by= c("StateName"= "State"))
+
+#Get rid of repeated FIPS
+joined_county_data <- joined_county_data %>% select(-n)
+
+joined_county_data <- joined_county_data %>% 
+  add_count(FIPS) %>%
+  filter(n == 1)
+
 #Drop weird rows that have "US" as the state 
 joined_county_data <- subset(joined_county_data, State.x != "US")
+
+#Drop some columns 
+joined_county_data <- joined_county_data %>% select(-State.y, -County.y, -n)
 
 #Look at very poor counties 
 poor_counties <- joined_county_data %>%
   filter(PCTPOVALL >= 20) 
+```
+
+##Look at data
+```{r Data Visualization}
+#Make sure this is a dataframe 
+joined_county_data <- as.data.frame(joined_county_data)
+
+#Look at data
+ggplot(data = joined_county_data, 
+       mapping = aes(x = Average_NFIP_claims_1996_to_2019,
+                     y = Numeracy_over_average)) +
+  geom_histogram()
 ```
 
 ## Write to File and Clean up
