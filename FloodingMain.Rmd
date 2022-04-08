@@ -167,6 +167,11 @@ NFIP_financial_losses_for_2022$State <- str_to_title(NFIP_financial_losses_for_2
 Average_NFIP_claims_1996_to_2019$State <- state2abbr(Average_NFIP_claims_1996_to_2019$State)
 NFIP_financial_losses_for_2022$State <- state2abbr(NFIP_financial_losses_for_2022$State)
 
+#Make column name easier to handle 
+Average_NFIP_claims_1996_to_2019$Average_NFIP_Claims_1996_to_2019 <- Average_NFIP_claims_1996_to_2019$`Average NFIP Claims Payment to Individuals (1996 to 2019)`
+
+Average_NFIP_claims_1996_to_2019 <- Average_NFIP_claims_1996_to_2019 %>% select (-`Average NFIP Claims Payment to Individuals (1996 to 2019)`)
+
 #The risk categories are for flood reinsurance 
 #New column for risk
 joined_county_data <- joined_county_data %>% 
@@ -190,7 +195,7 @@ joined_county_data <- joined_county_data %>%
 joined_county_data <- subset(joined_county_data, State.x != "US")
 
 #Drop some columns 
-joined_county_data <- joined_county_data %>% select(-State.y, -County.y, -n)
+joined_county_data <- joined_county_data %>% select(-State.y, -County.y, -n, - State.x, -StateName, -RegionName)
 
 #Look at very poor counties 
 poor_counties <- joined_county_data %>%
@@ -204,9 +209,14 @@ joined_county_data <- as.data.frame(joined_county_data)
 
 #Look at data
 ggplot(data = joined_county_data, 
-       mapping = aes(x = Average_NFIP_claims_1996_to_2019,
-                     y = Numeracy_over_average)) +
-  geom_histogram()
+       mapping = aes(x = Numeracy_average_score ,
+                     y = Risk_by_Instances_in_County)) +
+  geom_point()
+
+ggplot(data = joined_county_data, 
+       mapping = aes(x = Numeracy_average_score,
+                     y = Average_NFIP_Claims_1996_to_2019)) +
+  geom_point()
 ```
 
 ## Write to File and Clean up
