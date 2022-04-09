@@ -275,7 +275,8 @@ ggplot(data = joined_county_data,
        mapping = aes(x = White,
                      y = Risk_by_Instances_in_County,
                      color = Coastline_county)) +
-  geom_point()
+  geom_point() +
+  geom_smooth(method=lm, se=FALSE)
 
 #Linear model
 joined_county_data_linear_model <- lm(formula = Average_NFIP_Claims_1996_to_2019 ~ Black + White + Numeracy_average_score + Literacy_average_score + Coastline_county, 
