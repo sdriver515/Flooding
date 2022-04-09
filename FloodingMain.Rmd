@@ -233,37 +233,48 @@ joined_county_data <- as.data.frame(joined_county_data)
 #Scatter plot of Numeracy and Reinsurance Risk Instances by County
 ggplot(data = joined_county_data, 
        mapping = aes(x = Numeracy_average_score ,
-                     y = Risk_by_Instances_in_County)) +
-  geom_point()
+                     y = Risk_by_Instances_in_County,
+                     color = Coastline_county)) +
+  geom_point() +
+  geom_smooth(method=lm, se=FALSE)
 
 #Scatter plot of Numeracy and Average NFIP Claims
 ggplot(data = joined_county_data, 
        mapping = aes(x = Numeracy_average_score,
-                     y = Average_NFIP_Claims_1996_to_2019)) +
-  geom_point()
+                     y = Average_NFIP_Claims_1996_to_2019,
+                     color = Coastline_county)) +
+  geom_point() +
+  geom_smooth(method=lm, se=FALSE)
 
 #Scatter plot of Literacy and Average NFIP Claims
 ggplot(data = joined_county_data, 
        mapping = aes(x = Literacy_average_score,
-                     y = Average_NFIP_Claims_1996_to_2019)) +
-  geom_point()
+                     y = Average_NFIP_Claims_1996_to_2019,
+                     color = Coastline_county)) +
+  geom_point() +
+  geom_smooth(method=lm, se=FALSE)
 
 #Scatter plot of Literacy and Reinsurance Risk Instances 
 ggplot(data = joined_county_data, 
        mapping = aes(x = Literacy_average_score,
-                     y = Risk_by_Instances_in_County)) +
-  geom_point()
+                     y = Risk_by_Instances_in_County,
+                     color = Coastline_county)) +
+  geom_point() +
+  geom_smooth(method=lm, se=FALSE)
 
 #Scatter plot of County Blackness and Reinsurance Risk Instances 
 ggplot(data = joined_county_data, 
        mapping = aes(x = Black,
-                     y = Risk_by_Instances_in_County)) +
-  geom_point()
+                     y = Risk_by_Instances_in_County,
+                     color = Coastline_county)) +
+  geom_point() +
+  geom_smooth(method=lm, se=FALSE)
 
 #Scatter plot of County Whiteness and Reinsurance Risk Instances 
 ggplot(data = joined_county_data, 
        mapping = aes(x = White,
-                     y = Risk_by_Instances_in_County)) +
+                     y = Risk_by_Instances_in_County,
+                     color = Coastline_county)) +
   geom_point()
 
 #Linear model
