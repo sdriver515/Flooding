@@ -201,6 +201,9 @@ joined_county_data <- left_join(joined_county_data, NFIP_financial_losses_for_20
 joined_county_data <- left_join(joined_county_data, Coastline_counties, by= "FIPS")
 
 joined_county_data$Coastline_county <- as.integer(joined_county_data$Coastline_county)
+
+#Make counties not on the coastline equal to 0
+joined_county_data$Coastline_county[is.na(joined_county_data$Coastline_county)] = 0
  
 #Get rid of repeated FIPS
 joined_county_data <- joined_county_data %>% select(-n)
@@ -264,10 +267,16 @@ ggplot(data = joined_county_data,
   geom_point()
 
 #Linear model
-joined_county_data_linear_model <- lm(formula = Average_NFIP_Claims_1996_to_2019 ~ Black + Numeracy_average_score + Literacy_average_score + Coastline_county, 
+joined_county_data_linear_model <- lm(formula = Average_NFIP_Claims_1996_to_2019 ~ Black + White + Numeracy_average_score + Literacy_average_score + Coastline_county, 
               data = joined_county_data) 
 
 summary(joined_county_data_linear_model)
+
+#Linear model around Risk_by_Instances_in_County
+joined_county_data_linear_model2 <- lm(formula = Risk_by_Instances_in_County ~ Black + White + Numeracy_average_score + Literacy_average_score + Coastline_county, 
+              data = joined_county_data) 
+
+summary(joined_county_data_linear_model2)
 ```
 
 ## Write to File and Clean up
