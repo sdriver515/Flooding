@@ -278,6 +278,9 @@ ggplot(data = joined_county_data,
   geom_point() +
   geom_smooth(method=lm, se=FALSE)
 
+#Check mean of latest Zillow typical home values for HUD counties
+mean(joined_county_data$X2.28.22_Zillow_date)
+
 #Linear model
 joined_county_data_linear_model <- lm(formula = Average_NFIP_Claims_1996_to_2019 ~ Black + White + Numeracy_average_score + Literacy_average_score + Coastline_county, 
               data = joined_county_data) 
