@@ -298,13 +298,13 @@ ggplot(data = joined_county_data,
 mean(joined_county_data$X2.28.22_Zillow_date)
 
 #Linear model
-joined_county_data_linear_model <- lm(formula = Average_NFIP_Claims_1996_to_2019 ~ Black + White + Numeracy_average_score + Literacy_average_score + Coastline_county, 
+joined_county_data_linear_model <- lm(formula = Average_NFIP_Claims_1996_to_2019 ~ Black + White + Numeracy_average_score + Literacy_average_score, 
               data = joined_county_data) 
 
 summary(joined_county_data_linear_model)
 
 #Linear model around Risk_by_Instances_in_County
-joined_county_data_linear_model2 <- lm(formula = Risk_by_Instances_in_County ~ Black + White + Numeracy_average_score + Literacy_average_score + Coastline_county, 
+joined_county_data_linear_model2 <- lm(formula = Risk_by_Instances_in_County ~ Black + White + Numeracy_average_score + Literacy_average_score, 
               data = joined_county_data) 
 
 summary(joined_county_data_linear_model2)
