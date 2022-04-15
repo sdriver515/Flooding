@@ -270,12 +270,28 @@ ggplot(data = joined_county_data,
   geom_point() +
   geom_smooth(method=lm, se=FALSE)
 
+#Scatter plot of Literacy and Average NFIP Claims
+ggplot(data = joined_county_data, 
+       mapping = aes(x = Black,
+                     y = Average_NFIP_Claims_1996_to_2019,
+                     color = Coastline_county)) +
+    geom_point() +
+  geom_smooth(method=lm, se=FALSE)
+
 #Scatter plot of County Whiteness and Reinsurance Risk Instances 
 ggplot(data = joined_county_data, 
        mapping = aes(x = White,
                      y = Risk_by_Instances_in_County,
                      color = Coastline_county)) +
   geom_point() +
+  geom_smooth(method=lm, se=FALSE)
+
+#Scatter plot of Literacy and Average NFIP Claims
+ggplot(data = joined_county_data, 
+       mapping = aes(x = White,
+                     y = Average_NFIP_Claims_1996_to_2019,
+                     color = Coastline_county)) +
+    geom_point() +
   geom_smooth(method=lm, se=FALSE)
 
 #Check mean of latest Zillow typical home values for HUD counties
