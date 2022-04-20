@@ -221,6 +221,10 @@ joined_county_data <- joined_county_data %>% select(-State.y, -County.y, -n, - S
 #Look at very poor counties 
 poor_counties <- joined_county_data %>%
   filter(PCTPOVALL >= 20) 
+
+#Look at majority black counties 
+black_counties_with_reinsurance <- joined_county_data %>%
+  filter(Black >= .50 & RiskCount >= 1) 
 ```
 
 ##Look at data and analyze a bit 
