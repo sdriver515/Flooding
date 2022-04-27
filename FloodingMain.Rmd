@@ -225,6 +225,10 @@ poor_counties <- joined_county_data %>%
 #Look at majority black counties 
 black_counties_with_reinsurance <- joined_county_data %>%
   filter(Black >= .50 & RiskCount >= 1) 
+
+#Counties with low academic ability levels and instances of reinsurance 
+poor_literacy_counties <- joined_county_data %>%
+  filter(Literacy_average_score <= 275) #Level 2 literacy and below 
 ```
 
 ##Look at data and analyze a bit 
