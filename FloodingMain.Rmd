@@ -54,7 +54,6 @@ abilities_by_county <- read.csv(here("SAE_website_dataset.b29ed56c.csv"))
 #NFIP_Reinsurance_Placement2020 <- read.csv(file = "./Documents/PUAD-688/NFIP_2021_Exposure_by_DTW(2021_NFIP_Reinsurance_Placement_Information).csv") 
 #Retain roll up by number of stories. We skip the first 7 lines because these contain description, not the dataset
 NFIP_Reinsurance_Placement2020 <- read_excel(here("NFIP", "NFIP_2021_Exposure_by_DTW.xlsx"), sheet= "NumStor_County_DTW", skip = 7)
-#some new changes
 
 #Looking at everything
 str(HUD_data) #a lot are chr and int 
@@ -82,7 +81,6 @@ length(unique(HUD_counties$FIPS))
 #nrow(HUD_counties)#yes, there are many duplicates
 HUD_counties <- unique(HUD_counties) #drop all duplicates
 
-#Note: US Virgin Islands are in here, might want to double check them
 #TIV means total insurable value 
 
 #Check
@@ -216,7 +214,7 @@ joined_county_data <- joined_county_data %>%
 joined_county_data <- subset(joined_county_data, State.x != "US")
 
 #Drop some columns 
-joined_county_data <- joined_county_data %>% select(-State.y, -County.y, -n, - State.x, -StateName, -RegionName)
+joined_county_data <- joined_county_data %>% select(-State.y, -County.y, -n, - State.x, -StateName, -RegionName, -RollUp_Level, -DTW_band, -'Number of Stories')
 
 #Look at very poor counties 
 poor_counties <- joined_county_data %>%
@@ -323,6 +321,8 @@ summary(joined_county_data_linear_model2)
 #Save data frames as .csv
 #write_csv(poor_counties, "./Documents/PUAD-688/Poor_Counties.csv")
 #write_csv(joined_county_data, "./Documents/PUAD-688/Some_Joined_Data.csv")
+#write_csv(poor_literacy_counties, "./Documents/PUAD-688/Poor_Literacy_Counties.csv")
+#write_csv(black_counties_with_reinsurance, "./Documents/PUAD-688/Poor_Black_Counties_with_Reinsurance.csv")
 
 ```
 
