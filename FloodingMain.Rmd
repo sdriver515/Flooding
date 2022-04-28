@@ -316,7 +316,7 @@ joined_county_data_linear_model2 <- lm(formula = Risk_by_Instances_in_County ~ B
 summary(joined_county_data_linear_model2)
 ```
 
-## Write to File and Clean up
+## Write to File 
 ```{r WriteFile, echo=TRUE}
 #Save data frames as .csv
 #write_csv(poor_counties, "./Documents/PUAD-688/Poor_Counties.csv")
@@ -324,11 +324,4 @@ summary(joined_county_data_linear_model2)
 #write_csv(poor_literacy_counties, "./Documents/PUAD-688/Poor_Literacy_Counties.csv")
 #write_csv(black_counties_with_reinsurance, "./Documents/PUAD-688/Poor_Black_Counties_with_Reinsurance.csv")
 
-```
-
-
-## Data Analysis
-
-```{r analysis, echo=TRUE}
-## Do something
 ```
